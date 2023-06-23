@@ -11,7 +11,6 @@ from scipy.ndimage import rotate
 np.set_printoptions(threshold=sys.maxsize)
 
 
-# TODO: fix the map server to work with all exits
 def main():
     root = pathlib.Path(__file__).parent.parent
     python_exe = os.path.join(root, "venv", "Scripts", "python.exe")

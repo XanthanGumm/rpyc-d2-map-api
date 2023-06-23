@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools", "setuptools-scm"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "map-layout"
+version = "1.0.0"
+requires-python = ">=3.10"
+classifiers = [
+    "Programming Language :: Python :: 3",
+]
+
+dependencies = [
+    "rpyc",
+    "pyastar2d",
+    "numpy",
+]
+
+[tool.setuptools.packages.find]
+include = ["map_server*"]
+
+[project.scripts]
+map_server = "map_server.__main__:main"

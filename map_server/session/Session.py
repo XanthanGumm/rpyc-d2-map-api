@@ -21,7 +21,6 @@ class Session:
         root = pathlib.Path(__file__)
         while root.name != "rpyc-d2-map-api":
             root = root.parent
-        root = root.parent
 
         with open(os.path.join(root, "settings.toml"), "rb") as file:
             settings = tomllib.load(file)

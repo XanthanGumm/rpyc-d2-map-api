@@ -40,7 +40,6 @@ class ApiWrapper:
         root = pathlib.Path(__file__)
         while root.name != "rpyc-d2-map-api":
             root = root.parent
-        root = root.parent
 
         api_lib = CDLL(os.path.join(root, "dep", "MapApi.dll"))
         self._path = c_char_p(d2lod_path)

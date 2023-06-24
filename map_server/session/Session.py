@@ -18,7 +18,11 @@ class Session:
         self.acts = (POINTER(Act) * 5)()
         self.session = dict()
 
-        root = pathlib.Path(__file__).parent.parent.parent
+        root = pathlib.Path(__file__)
+        while root.name != "map_server":
+            root = root.parent
+        root = root.parent
+
         with open(os.path.join(root, "settings.toml"), "rb") as file:
             settings = tomllib.load(file)
 

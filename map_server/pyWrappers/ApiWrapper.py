@@ -37,7 +37,11 @@ def signature(*args, **kwargs):
 class ApiWrapper:
 
     def __init__(self, d2lod_path: bytes):
-        root = pathlib.Path(__file__).parent.parent.parent
+        root = pathlib.Path(__file__)
+        while root.name != "map_server":
+            root = root.parent
+        root = root.parent
+
         api_lib = CDLL(os.path.join(root, "dep", "MapApi.dll"))
         self._path = c_char_p(d2lod_path)
 

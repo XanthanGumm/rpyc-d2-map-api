@@ -17,7 +17,7 @@ dist/
 downloads/
 eggs/
 .eggs/
-# lib/
+lib/
 lib64/
 parts/
 sdist/
@@ -184,3 +184,9 @@ fabric.properties
 
 # idea folder, uncomment if you don't need it
 .idea
+
+# others
+example/BloodMoor.png
+example/TheWorldStoneKeepLevel1.png
+./BloodMoor.png
+./TheWorldStoneKeepLevel1.png

@@ -114,8 +114,10 @@ def main():
 
         map_data = rpyc_conn.root.obtain_map_data(blood_moor, dummy_player_position)
         print(f"Area: {map_data.area}, Origin: {map_data.origin}, Size: {map_data.size}")
-        print(f"Maze exits: {map_data.exits}")
-        print("Adjacent levels:")
+        if map_data.exits:
+            print(f"Maze exits: {map_data.exits}")
+        if map_data.adjacent_levels:
+            print("Adjacent levels:")
         for k, v in map_data.adjacent_levels.items():
             print("\t", k, v)
 

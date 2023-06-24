@@ -38,7 +38,7 @@ class ApiWrapper:
 
     def __init__(self, d2lod_path: bytes):
         root = pathlib.Path(__file__).parent.parent.parent
-        api_lib = CDLL(os.path.join(root, "lib", "MapApi.dll"))
+        api_lib = CDLL(os.path.join(root, "dep", "MapApi.dll"))
         self._path = c_char_p(d2lod_path)
 
         self._Initialize = api_lib["Initialize"]

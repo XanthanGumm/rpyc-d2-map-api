@@ -38,7 +38,7 @@ class ApiWrapper:
 
     def __init__(self, d2lod_path: bytes):
         root = pathlib.Path(__file__)
-        while root.name != "map_server":
+        while root.name != "rpyc-d2-map-api":
             root = root.parent
         root = root.parent
 

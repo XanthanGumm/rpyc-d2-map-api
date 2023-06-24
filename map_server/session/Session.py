@@ -19,7 +19,7 @@ class Session:
         self.session = dict()
 
         root = pathlib.Path(__file__)
-        while root.name != "map_server":
+        while root.name != "rpyc-d2-map-api":
             root = root.parent
         root = root.parent
 

@@ -26,8 +26,16 @@ class MapService(rpyc.Service):
         self._session.difficulty = d
 
     @rpyc.exposed
-    def obtain_map_data(self, area: int, position: tuple | None = None):
-        return self._session.obtain_map_data(area, position)
+    def read_map_data(self, area: int, position: tuple | None = None):
+        self._session.read_map_data(area, position)
+
+    @rpyc.exposed
+    def obtain_map_data(self, area: int):
+        return self._session.obtain_map_data(area)
+
+    @rpyc.exposed
+    def generate_map_image(self, area):
+        return self._session.generate_level_image(area)
 
     def on_disconnect(self, conn):
         pass

@@ -1,4 +1,4 @@
 # rpyc-d2-map-api
-BloodMoor                  |  TheWorldStoneKeepLevel1
+ArcaneSanctuary            |  LowerKurast
 :-------------------------:|:-------------------------:
-![plot](./BloodMoor.png)  |  ![plot](./TheWorldStoneKeepLevel1.png)
+![plot](./Arcane.png)  |  ![plot](./LowerKurast.png)

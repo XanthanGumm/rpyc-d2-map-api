@@ -12,10 +12,10 @@ classifiers = [
 
 dependencies = [
     "rpyc",
+    "pillow==9.5",
     "pyastar2d",
     "numpy",
     "opencv-python",
-    "pillow"
 ]
 
 [tool.setuptools.packages.find]

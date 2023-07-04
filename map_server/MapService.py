@@ -27,11 +27,7 @@ class MapService(rpyc.Service):
 
     @rpyc.exposed
     def read_map_data(self, area: int, position: tuple | None = None):
-        self._session.read_map_data(area, position)
-
-    @rpyc.exposed
-    def obtain_map_data(self, area: int):
-        return self._session.obtain_map_data(area)
+        return self._session.read_map_data(area, position)
 
     @rpyc.exposed
     def generate_map_image(self, area):

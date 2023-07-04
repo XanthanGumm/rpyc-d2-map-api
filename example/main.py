@@ -2,7 +2,7 @@ import os
 import pathlib
 import subprocess
 import rpyc
-from map_server.utils.data import EnumArea
+from PIL import Image
 
 
 def main():
@@ -25,11 +25,8 @@ def main():
         rpyc_conn.root.set_map_seed(example_seed)
         rpyc_conn.root.set_difficulty(difficulty)
 
-        rpyc_conn.root.read_map_data(blood_moor, dummy_player_position)
+        map_data = rpyc_conn.root.read_map_data(blood_moor, dummy_player_position)
         image = rpyc_conn.root.generate_map_image(blood_moor)
-
-        with open(f"{EnumArea(blood_moor).name}.png", "wb") as f:
-            f.write(image)
 
     finally:
         server_proc.terminate()

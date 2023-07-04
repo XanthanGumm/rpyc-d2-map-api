@@ -4,6 +4,8 @@ import cv2
 import os
 import tomllib
 import pathlib
+from cachetools import cached
+from cachetools.keys import hashkey
 from PIL import Image, ImageFilter
 from ctypes import POINTER
 from map_server.utils import AreaData
@@ -19,7 +21,6 @@ class Session:
         self._seed = None
         self._difficulty = None
         self.acts = (POINTER(Act) * 5)()
-        self.session = dict()
 
         root = pathlib.Path(__file__)
         while root.name != "rpyc-d2-map-api":
@@ -32,11 +33,9 @@ class Session:
         if not self.d2api.initialize():
             raise ValueError("Failed to initialize Diablo 2 Lod 13.c")
 
+    @cached(cache={}, key=lambda self, area, position: hashkey(area))
     def read_map_data(self, area, position):
         assert self._seed is not None or self._difficulty is not None
-
-        if self.session.get(area):
-            return
 
         act = EnumAct.FromArea(area)
         act_index = act.code
@@ -58,7 +57,7 @@ class Session:
             else:
                 adjacent_levels[k] = v
 
-        data = {
+        return {
             "map": np.asarray(area_map.map),
             "area": area,
             "size": area_map.size,
@@ -70,25 +69,11 @@ class Session:
             "tomb_area": area_map.tomb_area
         }
 
-        self.session[area] = AreaData(**data)
+    @cached(cache={}, key=lambda self, area, player_position=None, verbose=False: hashkey(area))
+    def generate_level_image(self, area, player_position=None, verbose=False):
 
-    def obtain_map_data(self, area):
-        map_data = self.session.get(area)
-        if map_data is None:
-            raise ValueError(
-                "Map data must me read before retrieving data. Use read_map_data function to read the map_data"
-            )
-        return self.session[area]
-
-    def generate_level_image(self, area, verbose=False):
-
-        map_data = self.session.get(area)
-        if map_data is None:
-            raise ValueError(
-                "Map data must me read before generating map image. Use read_map_data function to read the map_data"
-            )
-
-        level_map = map_data.map.astype(np.uint8)
+        map_data = self.read_map_data(area, player_position)
+        level_map = map_data["map"].astype(np.uint8)
 
         level_map_invert = level_map
         level_map_invert[level_map_invert == -1] = 0
@@ -186,13 +171,15 @@ class Session:
 
     @seed.setter
     def seed(self, s):
-        for act_ptr in self.acts:
-            if act_ptr:
-                self.d2api.unload_act(act_ptr)
+        if s != self._seed:
+            for p_act in self.acts:
+                if p_act:
+                    self.d2api.unload_act(p_act)
 
-        self.acts = (POINTER(Act) * 5)()
-        self.session.clear()
-        self._seed = s
+            self.acts = (POINTER(Act) * 5)()
+            self.read_map_data.cache.clear()
+            self.generate_level_image.cache.clear()
+            self._seed = s
 
     @property
     def difficulty(self):

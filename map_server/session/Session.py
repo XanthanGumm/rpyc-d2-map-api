@@ -171,15 +171,14 @@ class Session:
 
     @seed.setter
     def seed(self, s):
-        if s != self._seed:
-            for p_act in self.acts:
-                if p_act:
-                    self.d2api.unload_act(p_act)
+        for p_act in self.acts:
+            if p_act:
+                self.d2api.unload_act(p_act)
 
-            self.acts = (POINTER(Act) * 5)()
-            self.read_map_data.cache.clear()
-            self.generate_level_image.cache.clear()
-            self._seed = s
+        self.acts = (POINTER(Act) * 5)()
+        self.read_map_data.cache.clear()
+        self.generate_level_image.cache.clear()
+        self._seed = s
 
     @property
     def difficulty(self):

@@ -3,7 +3,6 @@ from map_server.session import Session
 
 
 class MapService(rpyc.Service):
-
     _session = None
 
     def on_connect(self, conn):

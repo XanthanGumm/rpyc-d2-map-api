@@ -36,4 +36,3 @@ class AreaData:
         path[:, 0] += self.origin[0]
         path[:, 1] += self.origin[1]
         return [{i: (int(a[0]), int(a[1]))} for i, a in enumerate(path)]
-

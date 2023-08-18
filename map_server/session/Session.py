@@ -29,7 +29,7 @@ class Session:
         with open(os.path.join(root, "settings.toml"), "rb") as file:
             settings = tomllib.load(file)
 
-        self.d2api = ApiWrapper(bytes(settings["diablo2"]["path"], 'utf8'))
+        self.d2api = ApiWrapper(bytes(settings["diablo2"]["path"], "utf8"))
         if not self.d2api.initialize():
             raise ValueError("Failed to initialize Diablo 2 Lod 13.c")
 
@@ -41,8 +41,12 @@ class Session:
         act_index = act.code
 
         if not self.acts[act.value]:
-            print(f"[!] Init Act: {act.value}, difficulty: {self._difficulty.value}, act_index: {act_index}, seed: {hex(self._seed)}")
-            self.acts[act.value] = self.d2api.load_act(act.value, self._seed, self._difficulty.value, act_index)
+            print(
+                f"[!] Init Act: {act.value}, difficulty: {self._difficulty.value}, act_index: {act_index}, seed: {hex(self._seed)}"
+            )
+            self.acts[act.value] = self.d2api.load_act(
+                act.value, self._seed, self._difficulty.value, act_index
+            )
 
         area_map = Map(self.d2api, area)
         area_map.build_coll_map(self.acts[act.value], area)
@@ -66,12 +70,14 @@ class Session:
             "adjacent_levels": adjacent_levels,
             "waypoint": area_map.waypoint,
             "exits": exits,
-            "tomb_area": area_map.tomb_area
+            "tomb_area": area_map.tomb_area,
         }
 
-    @cached(cache={}, key=lambda self, area, player_position=None, verbose=False: hashkey(area))
+    @cached(
+        cache={},
+        key=lambda self, area, player_position=None, verbose=False: hashkey(area),
+    )
     def generate_level_image(self, area, player_position=None, verbose=False):
-
         map_data = self.read_map_data(area, player_position)
         level_map = map_data["map"].astype(np.uint8)
 
@@ -91,26 +97,44 @@ class Session:
         level_map_invert_indices = np.argwhere(level_map_invert != 255)
         orthoX_invert_indices = level_map_invert_indices[:, 1]
         orthoY_invert_indices = level_map_invert_indices[:, 0]
-        level_map_invert_iso_y, level_map_invert_iso_x = cart_to_iso(level_map_invert_indices)
-        level_map_invert_iso = np.ones((height + width + 1, width + height + 1)).astype(np.uint8) * 255
-        level_map_invert_iso[level_map_invert_iso_y, level_map_invert_iso_x] = level_map_invert[orthoY_invert_indices, orthoX_invert_indices]
+        level_map_invert_iso_y, level_map_invert_iso_x = cart_to_iso(
+            level_map_invert_indices
+        )
+        level_map_invert_iso = (
+            np.ones((height + width + 1, width + height + 1)).astype(np.uint8) * 255
+        )
+        level_map_invert_iso[
+            level_map_invert_iso_y, level_map_invert_iso_x
+        ] = level_map_invert[orthoY_invert_indices, orthoX_invert_indices]
 
-        level_map_binary = cv2.bitwise_not(np.where(level_map_invert_iso % 2 != 0, 255, level_map_invert_iso))
+        level_map_binary = cv2.bitwise_not(
+            np.where(level_map_invert_iso % 2 != 0, 255, level_map_invert_iso)
+        )
 
         level_map_indices = np.argwhere(level_map != 255)
         orthoX_indices = level_map_indices[:, 1]
         orthoY_indices = level_map_indices[:, 0]
         level_map_iso_y, level_map_iso_x = cart_to_iso(level_map_indices)
-        level_map_iso = np.ones((height + width + 1, width + height + 1)).astype(np.uint8) * 255
-        level_map_iso[level_map_iso_y, level_map_iso_x] = level_map[orthoY_indices, orthoX_indices]
+        level_map_iso = (
+            np.ones((height + width + 1, width + height + 1)).astype(np.uint8) * 255
+        )
+        level_map_iso[level_map_iso_y, level_map_iso_x] = level_map[
+            orthoY_indices, orthoX_indices
+        ]
 
         h_invert, w_invert = level_map_binary.shape[:2]
-        cnts_invert, hierarchy_invert = cv2.findContours(level_map_binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+        cnts_invert, hierarchy_invert = cv2.findContours(
+            level_map_binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE
+        )
         level_map_cnts_invert = np.ones((h_invert, w_invert)).astype(np.uint8) * 255
-        cv2.drawContours(level_map_cnts_invert, cnts_invert, -1, (0, 255, 0), cv2.FILLED)
+        cv2.drawContours(
+            level_map_cnts_invert, cnts_invert, -1, (0, 255, 0), cv2.FILLED
+        )
 
         h, w = level_map_iso.shape[:2]
-        cnts, hierarchy = cv2.findContours(level_map_iso, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
+        cnts, hierarchy = cv2.findContours(
+            level_map_iso, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE
+        )
         level_map_cnts = np.ones((h, w)).astype(np.uint8) * 255
         cv2.drawContours(level_map_cnts, cnts, -1, (0, 255, 0), 1)
 
@@ -124,7 +148,9 @@ class Session:
         black_pix_c1 = black_pix_c[:, 0][0]
         black_pix_c2 = black_pix_c[:, -1][0]
 
-        level_map_cropped = level_map_cnts[black_pix_r1:black_pix_r2 + 1, black_pix_c1:black_pix_c2 + 1]
+        level_map_cropped = level_map_cnts[
+            black_pix_r1 : black_pix_r2 + 1, black_pix_c1 : black_pix_c2 + 1
+        ]
 
         level_map_iso_brga = cv2.cvtColor(level_map_cnts, cv2.COLOR_BGR2BGRA)
         level_map_iso_brga[0, :] = [255, 255, 255, 0]

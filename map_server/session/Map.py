@@ -28,7 +28,9 @@ class Map:
         self.waypoint = None
         self.weights = None
 
-    def read_room_adjacent_levels(self, p_level: POINTER(Level), p_room2: POINTER(Room2)):
+    def read_room_adjacent_levels(
+        self, p_level: POINTER(Level), p_room2: POINTER(Room2)
+    ):
         assert p_level, "Pointer to p_level is NULL"
         assert p_room2, "Pointer to p_room2 is NULL"
 
@@ -43,10 +45,12 @@ class Map:
                 near_level_height = cur.contents.pLevel.contents.dwSizeX * 5
                 near_level_width = cur.contents.pLevel.contents.dwSizeY * 5
                 level_no = cur.contents.pLevel.contents.dwLevelNo
-                self.adjacent_levels[EnumArea(level_no).name] = {"origin": (near_originX, near_originY),
-                                                                 "size": (near_level_width, near_level_height),
-                                                                 "exits": None,
-                                                                 "outdoor": []}
+                self.adjacent_levels[EnumArea(level_no).name] = {
+                    "origin": (near_originX, near_originY),
+                    "size": (near_level_width, near_level_height),
+                    "exits": None,
+                    "outdoor": [],
+                }
 
     def read_room_collisions(self, p_room2: POINTER(Room2), originX, originY):
         assert p_room2, "Pointer to p_room2 is NULL"
@@ -80,7 +84,9 @@ class Map:
             #         self.npcs[npc.name] = [(pos_x, pos_y)]
             if preset_type == EnumPresetType.object:
                 if p_preset.contents.dwTxtFileNo < 580:
-                    object_txt = self._d2api.get_object_txt(p_preset.contents.dwTxtFileNo)
+                    object_txt = self._d2api.get_object_txt(
+                        p_preset.contents.dwTxtFileNo
+                    )
                     if object_txt.contents.nSelectable0:
                         if object_txt.contents.nOperateFn == 23:
                             self.waypoint = (pos_x, pos_y)
@@ -94,13 +100,14 @@ class Map:
         p_room_tile = p_room2.contents.pRoomTiles
         while p_room_tile:
             if p_room_tile.contents.nNum[0] == p_preset.contents.dwTxtFileNo:
-                level_no = p_room_tile.contents.pRoom2.contents.pLevel.contents.dwLevelNo
+                level_no = (
+                    p_room_tile.contents.pRoom2.contents.pLevel.contents.dwLevelNo
+                )
 
                 self.adjacent_levels[EnumArea(level_no).name]["exits"] = pos_x, pos_y
             p_room_tile = p_room_tile.contents.pNext
 
     def build_coll_map(self, act: POINTER(Act), area):
-
         if act.contents.pMisc.contents.dwStaffTombLevel != 0:
             pass  # add the tomb area
 
@@ -111,9 +118,14 @@ class Map:
         # init the level rooms
         if not p_level.contents.pRoom2First:
             self._d2api.init_level(p_level)
-        assert p_level.contents.pRoom2First, "Pointer to pRoom2First is NULL after init level's rooms"
+        assert (
+            p_level.contents.pRoom2First
+        ), "Pointer to pRoom2First is NULL after init level's rooms"
 
-        self.originX, self.originY = p_level.contents.dwPosX * 5, p_level.contents.dwPosY * 5
+        self.originX, self.originY = (
+            p_level.contents.dwPosX * 5,
+            p_level.contents.dwPosY * 5,
+        )
         self.size = p_level.contents.dwSizeX * 5, p_level.contents.dwSizeY * 5
         self.map = [[-1] * self.size[0] for _ in range(self.size[1])]
 
@@ -121,11 +133,13 @@ class Map:
         while p_room2:
             b_added = True if not p_room2.contents.pRoom1 else False
             if b_added:
-                self._d2api.add_room_data(act,
-                                          p_level.contents.dwLevelNo,
-                                          p_room2.contents.dwPosX,
-                                          p_room2.contents.dwPosY,
-                                          None)
+                self._d2api.add_room_data(
+                    act,
+                    p_level.contents.dwLevelNo,
+                    p_room2.contents.dwPosX,
+                    p_room2.contents.dwPosY,
+                    None,
+                )
 
             self.read_room_adjacent_levels(p_level, p_room2)
             # if p_room2.contents.pRoom1 and p_room2.contents.pRoom1.contents.Coll:
@@ -133,11 +147,13 @@ class Map:
             self.read_room_presets(p_room2)
 
             if b_added:
-                self._d2api.remove_room_data(act,
-                                             p_level.contents.dwLevelNo,
-                                             p_room2.contents.dwPosX,
-                                             p_room2.contents.dwPosY,
-                                             None)
+                self._d2api.remove_room_data(
+                    act,
+                    p_level.contents.dwLevelNo,
+                    p_room2.contents.dwPosX,
+                    p_room2.contents.dwPosY,
+                    None,
+                )
 
             p_room2 = p_room2.contents.pRoom2Next
 
@@ -162,8 +178,21 @@ class Map:
         self._generate_rle_map()
         rle_map_keys, rle_map = self._rle_map["keys"], self._rle_map["rle"]
         for rkeys, rmap in zip(rle_map_keys, rle_map):
-            cost_matrix.append([np.inf if k & 1 or k == 1024 else 1 for k, n in zip(rkeys, rmap) for _ in range(n)])
-            collisions.append([''.join('X' * n if k & 1 or k == 1024 else ' ' * n for k, n in zip(rkeys, rmap))])
+            cost_matrix.append(
+                [
+                    np.inf if k & 1 or k == 1024 else 1
+                    for k, n in zip(rkeys, rmap)
+                    for _ in range(n)
+                ]
+            )
+            collisions.append(
+                [
+                    "".join(
+                        "X" * n if k & 1 or k == 1024 else " " * n
+                        for k, n in zip(rkeys, rmap)
+                    )
+                ]
+            )
 
         self.collision_map = collisions
         self.weights = np.array(cost_matrix).astype(np.float32)
@@ -176,50 +205,64 @@ class Map:
             "left": {"w": self.weights[:, 0], "outdoor": []},
             "top": {"w": self.weights[0, :], "outdoor": []},
             "right": {"w": self.weights[:, -1], "outdoor": []},
-            "down": {"w": self.weights[-1, :], "outdoor": []}
+            "down": {"w": self.weights[-1, :], "outdoor": []},
         }
 
         def outdoor_connectors(w):
             index = 0
             for k, g in groupby(w):
                 g = list(g)
-                if k == 1. and 3 < len(g) <= 30:
+                if k == 1.0 and 3 < len(g) <= 30:
                     yield index + len(g) / 2
                 index += len(g)
 
         for c in outdoor_connectors(sides["left"]["w"]):
             sides["left"]["outdoor"].append(
-                {"adjacent": (self.originX - 1, self.originY + c),
-                 "edge": (self.originX, self.originY + c)}
+                {
+                    "adjacent": (self.originX - 1, self.originY + c),
+                    "edge": (self.originX, self.originY + c),
+                }
             )
 
         for c in outdoor_connectors(sides["top"]["w"]):
             sides["top"]["outdoor"].append(
-                {"adjacent": (self.originX + c, self.originY - 1),
-                 "edge": (self.originX + c, self.originY)}
+                {
+                    "adjacent": (self.originX + c, self.originY - 1),
+                    "edge": (self.originX + c, self.originY),
+                }
             )
 
         for c in outdoor_connectors(sides["right"]["w"]):
             sides["right"]["outdoor"].append(
-                {"adjacent": (self.originX + self.size[0] + 1, self.originY + c),
-                 "edge": (self.originX + self.size[0] - 1, self.originY + c)}
+                {
+                    "adjacent": (self.originX + self.size[0] + 1, self.originY + c),
+                    "edge": (self.originX + self.size[0] - 1, self.originY + c),
+                }
             )
 
         for c in outdoor_connectors(sides["down"]["w"]):
             sides["down"]["outdoor"].append(
-                {"adjacent": (self.originX + c, self.originY + self.size[1] + 1),
-                 "edge": (self.originX + c, self.originY + self.size[1] - 1)}
+                {
+                    "adjacent": (self.originX + c, self.originY + self.size[1] + 1),
+                    "edge": (self.originX + c, self.originY + self.size[1] - 1),
+                }
             )
 
         weights = self.weights.transpose()
         src = int(position[0]) - self.originX, int(position[1]) - self.originY
 
         for _, c in sides.items():
-            c["outdoor"] = sorted(c["outdoor"], key=lambda outdoor: math.dist(outdoor["adjacent"], position),
-                                  reverse=True)
+            c["outdoor"] = sorted(
+                c["outdoor"],
+                key=lambda outdoor: math.dist(outdoor["adjacent"], position),
+                reverse=True,
+            )
 
             for connector in c["outdoor"]:
-                dst = (int(connector["edge"][0] - self.originX), int(connector["edge"][1] - self.originY))
+                dst = (
+                    int(connector["edge"][0] - self.originX),
+                    int(connector["edge"][1] - self.originY),
+                )
                 if pyastar2d.astar_path(weights, src, dst) is None:
                     continue
 
@@ -227,8 +270,8 @@ class Map:
                     x, y = connector["adjacent"]
                     w, h = info["size"][1], info["size"][0]
                     if (
-                            info["origin"][0] <= x <= info["origin"][0] + w and
-                            info["origin"][1] <= y <= info["origin"][1] + h
+                        info["origin"][0] <= x <= info["origin"][0] + w
+                        and info["origin"][1] <= y <= info["origin"][1] + h
                     ):
                         self.adjacent_levels[name]["outdoor"].append(connector["edge"])
 

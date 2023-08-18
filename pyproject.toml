@@ -17,6 +17,7 @@ dependencies = [
     "pyastar2d",
     "numpy",
     "opencv-python",
+    "black"
 ]
 
 [tool.setuptools.packages.find]
@@ -24,3 +25,7 @@ include = ["map_server*"]
 
 [project.scripts]
 map_server = "map_server.__main__:main"
+
+[tool.black]
+line-length = 88
+target-version = ['py311']

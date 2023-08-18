@@ -26,4 +26,3 @@ class Act(Enum):
         elif 109 <= area < 200:
             return cls(4)
         raise ValueError("Area code value error")
-

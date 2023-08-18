@@ -57,7 +57,7 @@ LevelTxt._fields_ = [
     ("wName", WCHAR * 40),
     ("wEntranceText", WCHAR * 40),
     ("nObjGroup", BYTE * 8),
-    ("nObjPrb", BYTE * 8)
+    ("nObjPrb", BYTE * 8),
 ]
 
 ObjectTxt._fields_ = [
@@ -75,7 +75,7 @@ ObjectTxt._fields_ = [
     ("nPopulateFn", BYTE),
     ("nOperateFn", BYTE),
     ("_5", BYTE * 5),
-    ("nAutoMap", DWORD)
+    ("nAutoMap", DWORD),
 ]
 
 CollMap._fields_ = [
@@ -108,7 +108,7 @@ Room2._fields_ = [
     ("pRoomTiles", POINTER(RoomTile)),
     ("_4", DWORD * 2),
     ("pLevel", POINTER(Level)),
-    ("pPreset", POINTER(PresetUnit))
+    ("pPreset", POINTER(PresetUnit)),
 ]
 
 Room1._fields_ = [
@@ -126,7 +126,7 @@ Room1._fields_ = [
     ("_4", DWORD * 6),
     ("pUnitFirst", POINTER(DWORD)),
     ("_5", DWORD),
-    ("pRoomNext", POINTER(Room1))
+    ("pRoomNext", POINTER(Room1)),
 ]
 
 PresetUnit._fields_ = [
@@ -136,14 +136,14 @@ PresetUnit._fields_ = [
     ("pPresetNext", POINTER(PresetUnit)),
     ("_3", DWORD),
     ("dwType", DWORD),
-    ("dwPosY", DWORD)
+    ("dwPosY", DWORD),
 ]
 
 RoomTile._fields_ = [
     ("pRoom2", POINTER(Room2)),
     ("pNext", POINTER(RoomTile)),
     ("_2", DWORD * 2),
-    ("nNum", POINTER(DWORD))
+    ("nNum", POINTER(DWORD)),
 ]
 
 Level._fields_ = [
@@ -159,7 +159,7 @@ Level._fields_ = [
     ("_4", DWORD),
     ("pMisc", POINTER(ActMisc)),
     ("_5", DWORD * 6),
-    ("dwLevelNo", DWORD)
+    ("dwLevelNo", DWORD),
 ]
 
 ActMisc._fields_ = [
@@ -168,7 +168,7 @@ ActMisc._fields_ = [
     ("_2", DWORD * 245),
     ("pAct", POINTER(Act)),
     ("_3", DWORD * 3),
-    ("pLevelFirst", POINTER(Level))
+    ("pLevelFirst", POINTER(Level)),
 ]
 
 Act._fields_ = [
@@ -177,7 +177,7 @@ Act._fields_ = [
     ("pRoom1", POINTER(Room1)),
     ("dwAct", DWORD),
     ("_2", DWORD * 12),
-    ("pMisc", POINTER(ActMisc))
+    ("pMisc", POINTER(ActMisc)),
 ]
 
 if __name__ == "__main__":

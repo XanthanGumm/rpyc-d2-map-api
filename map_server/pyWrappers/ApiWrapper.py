@@ -25,17 +25,22 @@ def signature(*args, **kwargs):
             for arg_name, arg_type in type_args.items():
                 if func_args.arguments.get(arg_name):
                     if not isinstance(func_args.arguments.get(arg_name), arg_type):
-                        func_args.arguments[arg_name] = arg_type(func_args.arguments[arg_name])
+                        func_args.arguments[arg_name] = arg_type(
+                            func_args.arguments[arg_name]
+                        )
                 if func_args.kwargs.get(arg_name):
                     if not isinstance(func_args.kwargs.get(arg_name), arg_type):
-                        func_args.kwargs[arg_name] = arg_type(func_args.kwargs[arg_name])
+                        func_args.kwargs[arg_name] = arg_type(
+                            func_args.kwargs[arg_name]
+                        )
             return fn(*func_args.args, **func_args.kwargs)
+
         return wrapper
+
     return decorator
 
 
 class ApiWrapper:
-
     def __init__(self, d2lod_path: bytes):
         root = pathlib.Path(__file__)
         while root.name != "rpyc-d2-map-api":
@@ -65,11 +70,23 @@ class ApiWrapper:
         self._GetObjectTxt.restype = POINTER(ObjectTxt)
 
         self._AddRoomData = api_lib["AddRoomData"]
-        self._AddRoomData.argtypes = [POINTER(Act), c_int32, c_int32, c_int32, POINTER(Room1)]
+        self._AddRoomData.argtypes = [
+            POINTER(Act),
+            c_int32,
+            c_int32,
+            c_int32,
+            POINTER(Room1),
+        ]
         self._AddRoomData.restype = None
 
         self._RemoveRoomData = api_lib["RemoveRoomData"]
-        self._RemoveRoomData.argtypes = [POINTER(Act), c_int32, c_int32, c_int32, POINTER(Room1)]
+        self._RemoveRoomData.argtypes = [
+            POINTER(Act),
+            c_int32,
+            c_int32,
+            c_int32,
+            POINTER(Room1),
+        ]
         self._RemoveRoomData.restype = None
 
         self._LoadAct = api_lib["LoadAct"]
@@ -97,28 +114,30 @@ class ApiWrapper:
     def get_object_txt(self, dwTxtFileNo) -> POINTER(ObjectTxt):
         return self._GetObjectTxt(dwTxtFileNo)
 
-    def add_room_data(self,
-                      p_act: POINTER(Act),
-                      level_id: c_int32,
-                      x_pos: c_int32,
-                      y_pos: c_int32,
-                      p_room: POINTER(Room1)):
+    def add_room_data(
+        self,
+        p_act: POINTER(Act),
+        level_id: c_int32,
+        x_pos: c_int32,
+        y_pos: c_int32,
+        p_room: POINTER(Room1),
+    ):
         self._AddRoomData(p_act, level_id, x_pos, y_pos, p_room)
 
-    def remove_room_data(self,
-                         p_act: POINTER(Act),
-                         level_id: c_int32,
-                         x_pos: c_int32,
-                         y_pos: c_int32,
-                         p_room: POINTER(Room1)):
+    def remove_room_data(
+        self,
+        p_act: POINTER(Act),
+        level_id: c_int32,
+        x_pos: c_int32,
+        y_pos: c_int32,
+        p_room: POINTER(Room1),
+    ):
         self._RemoveRoomData(p_act, level_id, x_pos, y_pos, p_room)
 
-    @signature(act_no=c_uint32, seed=c_uint32, difficulty=c_uint32, town_lvl_id=c_uint32)
-    def load_act(self,
-                 act_no,
-                 seed,
-                 difficulty,
-                 town_lvl_id) -> POINTER(Act):
+    @signature(
+        act_no=c_uint32, seed=c_uint32, difficulty=c_uint32, town_lvl_id=c_uint32
+    )
+    def load_act(self, act_no, seed, difficulty, town_lvl_id) -> POINTER(Act):
         return self._LoadAct(act_no, seed, difficulty, town_lvl_id)
 
     def unload_act(self, p_act: POINTER(Act)):

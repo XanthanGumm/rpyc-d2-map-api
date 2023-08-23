@@ -6,7 +6,8 @@ from ctypes import POINTER
 
 import cv2
 import numpy as np
-from PIL import Image, ImageFilter
+from PIL import Image
+from PIL import ImageFilter
 from cachetools import cached
 from cachetools.keys import hashkey
 
@@ -75,9 +76,9 @@ class Session:
     # TODO: first fix the zigzag, add waypoints, maze and outdoor, stash, remove cache
     @cached(
         cache={},
-        key=lambda self, area, player_position=None, verbose=False: hashkey(area),
+        key=lambda self, area, scale, player_position=None, verbose=False: hashkey(area),
     )
-    def generate_level_image(self, area, player_position=None, verbose=False):
+    def generate_level_image(self, area, scale, player_position=None, verbose=False):
         map_data = self.read_map_data(area, player_position)  # handle this when removing cache
         level_map = map_data["map"]
 
@@ -133,8 +134,17 @@ class Session:
         level_map_iso_brga[Bmask] = [127, 127, 127, 127]
         level_map_iso_brga[Wmask] = [255, 255, 255, 0]
 
+        level_map_iso_brga = cv2.resize(
+            level_map_iso_brga,
+            (int(w * scale), int(h * scale)),
+            interpolation=cv2.INTER_LANCZOS4
+        )
+
+        ksize = 3 if scale == 1 else 7 if 2.4 <= scale < 3.7 else 9 if 3.7 <= scale < 4.8 else 11
+        level_map_iso_brga = cv2.GaussianBlur(level_map_iso_brga, (ksize, ksize), 0)
+        level_map_iso_brga = cv2.medianBlur(level_map_iso_brga, ksize=ksize)
+
         level_map_iso_brga_img = Image.fromarray(level_map_iso_brga)
-        level_map_iso_brga_img = level_map_iso_brga_img.filter(ImageFilter.SMOOTH_MORE)
         img_byte_arr = io.BytesIO()
         level_map_iso_brga_img.save(img_byte_arr, format="PNG")
 

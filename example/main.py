@@ -26,7 +26,7 @@ def main():
         rpyc_conn.root.set_difficulty(difficulty)
 
         map_data = rpyc_conn.root.read_map_data(blood_moor, dummy_player_position)
-        image = rpyc_conn.root.generate_map_image(blood_moor)
+        image = rpyc_conn.root.generate_map_image(blood_moor, 4.8)
 
     finally:
         # server_proc.terminate()

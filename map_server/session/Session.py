@@ -1,19 +1,20 @@
-import numpy as np
 import io
-import cv2
 import os
-import tomllib
 import pathlib
+import tomllib
+from ctypes import POINTER
+
+import cv2
+import numpy as np
+from PIL import Image, ImageFilter
 from cachetools import cached
 from cachetools.keys import hashkey
-from PIL import Image, ImageFilter
-from ctypes import POINTER
-from map_server.utils import AreaData
-from map_server.utils.data import EnumDifficulty
-from map_server.utils.data import EnumAct
-from map_server.session.Map import Map
+
 from map_server.pyWrappers import Act
 from map_server.pyWrappers import ApiWrapper
+from map_server.session.Map import Map
+from map_server.utils.data import EnumAct
+from map_server.utils.data import EnumDifficulty
 
 
 class Session:
@@ -44,9 +45,7 @@ class Session:
             print(
                 f"[!] Init Act: {act.value}, difficulty: {self._difficulty.value}, act_index: {act_index}, seed: {hex(self._seed)}"
             )
-            self.acts[act.value] = self.d2api.load_act(
-                act.value, self._seed, self._difficulty.value, act_index
-            )
+            self.acts[act.value] = self.d2api.load_act(act.value, self._seed, self._difficulty.value, act_index)
 
         area_map = Map(self.d2api, area)
         area_map.build_coll_map(self.acts[act.value], area)
@@ -73,18 +72,19 @@ class Session:
             "tomb_area": area_map.tomb_area,
         }
 
+    # TODO: first fix the zigzag, add waypoints, maze and outdoor, stash, remove cache
     @cached(
         cache={},
         key=lambda self, area, player_position=None, verbose=False: hashkey(area),
     )
     def generate_level_image(self, area, player_position=None, verbose=False):
-        map_data = self.read_map_data(area, player_position)
-        level_map = map_data["map"].astype(np.uint8)
+        map_data = self.read_map_data(area, player_position)  # handle this when removing cache
+        level_map = map_data["map"]
 
         level_map_invert = level_map
         level_map_invert[level_map_invert == -1] = 0
 
-        level_map = np.where((level_map == -1) | (level_map % 2 != 0), 0, 255)
+        level_map = np.where((level_map == -1) | (level_map % 2 != 0), 0, 255).astype(np.uint8)
 
         height, width = level_map.shape[:2]
         offset = int(height)
@@ -97,60 +97,33 @@ class Session:
         level_map_invert_indices = np.argwhere(level_map_invert != 255)
         orthoX_invert_indices = level_map_invert_indices[:, 1]
         orthoY_invert_indices = level_map_invert_indices[:, 0]
-        level_map_invert_iso_y, level_map_invert_iso_x = cart_to_iso(
-            level_map_invert_indices
-        )
-        level_map_invert_iso = (
-            np.ones((height + width + 1, width + height + 1)).astype(np.uint8) * 255
-        )
-        level_map_invert_iso[
-            level_map_invert_iso_y, level_map_invert_iso_x
-        ] = level_map_invert[orthoY_invert_indices, orthoX_invert_indices]
+        level_map_invert_iso_y, level_map_invert_iso_x = cart_to_iso(level_map_invert_indices)
+        level_map_invert_iso = np.ones(((height + width) // 2, width + height)).astype(np.uint8) * 255
+        level_map_invert_iso[level_map_invert_iso_y, level_map_invert_iso_x] = level_map_invert[
+            orthoY_invert_indices, orthoX_invert_indices
+        ]
 
-        level_map_binary = cv2.bitwise_not(
-            np.where(level_map_invert_iso % 2 != 0, 255, level_map_invert_iso)
-        )
+        level_map_binary = cv2.bitwise_not(np.where(level_map_invert_iso % 2 != 0, 255, level_map_invert_iso))
 
         level_map_indices = np.argwhere(level_map != 255)
         orthoX_indices = level_map_indices[:, 1]
         orthoY_indices = level_map_indices[:, 0]
         level_map_iso_y, level_map_iso_x = cart_to_iso(level_map_indices)
-        level_map_iso = (
-            np.ones((height + width + 1, width + height + 1)).astype(np.uint8) * 255
-        )
-        level_map_iso[level_map_iso_y, level_map_iso_x] = level_map[
-            orthoY_indices, orthoX_indices
-        ]
+        level_map_iso = np.ones(((height + width) // 2, width + height)).astype(np.uint8) * 255
+        level_map_iso[level_map_iso_y, level_map_iso_x] = level_map[orthoY_indices, orthoX_indices]
 
         h_invert, w_invert = level_map_binary.shape[:2]
-        cnts_invert, hierarchy_invert = cv2.findContours(
-            level_map_binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE
-        )
+        cnts_invert, hierarchy_invert = cv2.findContours(level_map_binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
         level_map_cnts_invert = np.ones((h_invert, w_invert)).astype(np.uint8) * 255
-        cv2.drawContours(
-            level_map_cnts_invert, cnts_invert, -1, (0, 255, 0), cv2.FILLED
-        )
+        cv2.drawContours(level_map_cnts_invert, cnts_invert, -1, (0, 255, 0), cv2.FILLED)
 
         h, w = level_map_iso.shape[:2]
-        cnts, hierarchy = cv2.findContours(
-            level_map_iso, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE
-        )
+        cnts, hierarchy = cv2.findContours(level_map_iso, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
         level_map_cnts = np.ones((h, w)).astype(np.uint8) * 255
         cv2.drawContours(level_map_cnts, cnts, -1, (0, 255, 0), 1)
 
         cnts_mask = level_map_cnts_invert == 0
         level_map_cnts[~cnts_mask] = 255
-
-        black_pix_r = np.array(np.where(level_map_iso != 255))
-        black_pix_r1 = black_pix_r[:, 0][0]
-        black_pix_r2 = black_pix_r[:, -1][0]
-        black_pix_c = np.array(np.where(level_map_iso.transpose() != 255))
-        black_pix_c1 = black_pix_c[:, 0][0]
-        black_pix_c2 = black_pix_c[:, -1][0]
-
-        level_map_cropped = level_map_cnts[
-            black_pix_r1 : black_pix_r2 + 1, black_pix_c1 : black_pix_c2 + 1
-        ]
 
         level_map_iso_brga = cv2.cvtColor(level_map_cnts, cv2.COLOR_BGR2BGRA)
         level_map_iso_brga[0, :] = [255, 255, 255, 0]
@@ -181,10 +154,6 @@ class Session:
             # show the contours of the level map
             level_map_cnts_img = Image.fromarray(level_map_cnts)
             level_map_cnts_img.show()
-
-            # show the contours of the level map after cropping
-            level_map_cropped_img = Image.fromarray(level_map_cropped)
-            level_map_cropped_img.show()
 
             # show the final image
             level_map_iso_brga_img.show()

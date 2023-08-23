@@ -25,14 +25,10 @@ def signature(*args, **kwargs):
             for arg_name, arg_type in type_args.items():
                 if func_args.arguments.get(arg_name):
                     if not isinstance(func_args.arguments.get(arg_name), arg_type):
-                        func_args.arguments[arg_name] = arg_type(
-                            func_args.arguments[arg_name]
-                        )
+                        func_args.arguments[arg_name] = arg_type(func_args.arguments[arg_name])
                 if func_args.kwargs.get(arg_name):
                     if not isinstance(func_args.kwargs.get(arg_name), arg_type):
-                        func_args.kwargs[arg_name] = arg_type(
-                            func_args.kwargs[arg_name]
-                        )
+                        func_args.kwargs[arg_name] = arg_type(func_args.kwargs[arg_name])
             return fn(*func_args.args, **func_args.kwargs)
 
         return wrapper
@@ -134,9 +130,7 @@ class ApiWrapper:
     ):
         self._RemoveRoomData(p_act, level_id, x_pos, y_pos, p_room)
 
-    @signature(
-        act_no=c_uint32, seed=c_uint32, difficulty=c_uint32, town_lvl_id=c_uint32
-    )
+    @signature(act_no=c_uint32, seed=c_uint32, difficulty=c_uint32, town_lvl_id=c_uint32)
     def load_act(self, act_no, seed, difficulty, town_lvl_id) -> POINTER(Act):
         return self._LoadAct(act_no, seed, difficulty, town_lvl_id)
 

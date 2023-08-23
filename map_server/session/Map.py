@@ -28,9 +28,7 @@ class Map:
         self.waypoint = None
         self.weights = None
 
-    def read_room_adjacent_levels(
-        self, p_level: POINTER(Level), p_room2: POINTER(Room2)
-    ):
+    def read_room_adjacent_levels(self, p_level: POINTER(Level), p_room2: POINTER(Room2)):
         assert p_level, "Pointer to p_level is NULL"
         assert p_room2, "Pointer to p_room2 is NULL"
 
@@ -84,9 +82,7 @@ class Map:
             #         self.npcs[npc.name] = [(pos_x, pos_y)]
             if preset_type == EnumPresetType.object:
                 if p_preset.contents.dwTxtFileNo < 580:
-                    object_txt = self._d2api.get_object_txt(
-                        p_preset.contents.dwTxtFileNo
-                    )
+                    object_txt = self._d2api.get_object_txt(p_preset.contents.dwTxtFileNo)
                     if object_txt.contents.nSelectable0:
                         if object_txt.contents.nOperateFn == 23:
                             self.waypoint = (pos_x, pos_y)
@@ -100,9 +96,7 @@ class Map:
         p_room_tile = p_room2.contents.pRoomTiles
         while p_room_tile:
             if p_room_tile.contents.nNum[0] == p_preset.contents.dwTxtFileNo:
-                level_no = (
-                    p_room_tile.contents.pRoom2.contents.pLevel.contents.dwLevelNo
-                )
+                level_no = p_room_tile.contents.pRoom2.contents.pLevel.contents.dwLevelNo
 
                 self.adjacent_levels[EnumArea(level_no).name]["exits"] = pos_x, pos_y
             p_room_tile = p_room_tile.contents.pNext
@@ -118,9 +112,7 @@ class Map:
         # init the level rooms
         if not p_level.contents.pRoom2First:
             self._d2api.init_level(p_level)
-        assert (
-            p_level.contents.pRoom2First
-        ), "Pointer to pRoom2First is NULL after init level's rooms"
+        assert p_level.contents.pRoom2First, "Pointer to pRoom2First is NULL after init level's rooms"
 
         self.originX, self.originY = (
             p_level.contents.dwPosX * 5,
@@ -178,21 +170,8 @@ class Map:
         self._generate_rle_map()
         rle_map_keys, rle_map = self._rle_map["keys"], self._rle_map["rle"]
         for rkeys, rmap in zip(rle_map_keys, rle_map):
-            cost_matrix.append(
-                [
-                    np.inf if k & 1 or k == 1024 else 1
-                    for k, n in zip(rkeys, rmap)
-                    for _ in range(n)
-                ]
-            )
-            collisions.append(
-                [
-                    "".join(
-                        "X" * n if k & 1 or k == 1024 else " " * n
-                        for k, n in zip(rkeys, rmap)
-                    )
-                ]
-            )
+            cost_matrix.append([np.inf if k & 1 or k == 1024 else 1 for k, n in zip(rkeys, rmap) for _ in range(n)])
+            collisions.append(["".join("X" * n if k & 1 or k == 1024 else " " * n for k, n in zip(rkeys, rmap))])
 
         self.collision_map = collisions
         self.weights = np.array(cost_matrix).astype(np.float32)

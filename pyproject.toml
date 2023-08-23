@@ -27,5 +27,5 @@ include = ["map_server*"]
 map_server = "map_server.__main__:main"
 
 [tool.black]
-line-length = 88
+line-length = 120
 target-version = ['py311']

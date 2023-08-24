@@ -70,6 +70,7 @@ class Session:
             "tomb_area": area_map.tomb_area,
         }
 
+    # TODO: find world origin
     # TODO: add waypoints, maze and outdoor, stash
     def generate_level_image(self, area, scale, upscale, player_position=None, verbose=False):
         map_data = self.read_map_data(area, player_position)  # handle this when removing cache
@@ -140,7 +141,6 @@ class Session:
             level_map_iso_brga = cv2.medianBlur(level_map_iso_brga, ksize=ksize)
 
         level_map_iso_brga_img = Image.fromarray(level_map_iso_brga)
-        level_map_iso_brga_img.show()
         img_byte_arr = io.BytesIO()
         level_map_iso_brga_img.save(img_byte_arr, format="PNG")
 

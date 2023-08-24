@@ -166,7 +166,7 @@ class Session:
 
             # show the final image
             # level_map_iso_brga_img.show()
-
+        print(f"Sending level: {area} image map")
         return bytes(img_byte_arr.getbuffer())
 
     @property

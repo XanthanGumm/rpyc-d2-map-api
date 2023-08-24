@@ -140,9 +140,12 @@ class Session:
             level_map_iso_brga = cv2.GaussianBlur(level_map_iso_brga, (ksize - 2, ksize - 2), 0)
             level_map_iso_brga = cv2.medianBlur(level_map_iso_brga, ksize=ksize)
 
-        level_map_iso_brga_img = Image.fromarray(level_map_iso_brga)
-        img_byte_arr = io.BytesIO()
-        level_map_iso_brga_img.save(img_byte_arr, format="PNG")
+        # level_map_iso_brga_img = Image.fromarray(level_map_iso_brga)
+        # img_byte_arr = io.BytesIO()
+        # level_map_iso_brga_img.save(img_byte_arr, format="PNG")
+
+        _, buffer = cv2.imencode(".png", level_map_iso_brga)
+        img_byte_arr = io.BytesIO(buffer)
 
         if verbose:
             # show the level map INVERT after projecting to isometric view
@@ -162,9 +165,9 @@ class Session:
             level_map_cnts_img.show()
 
             # show the final image
-            level_map_iso_brga_img.show()
+            # level_map_iso_brga_img.show()
 
-        return img_byte_arr.getvalue()
+        return bytes(img_byte_arr.getbuffer())
 
     @property
     def seed(self):

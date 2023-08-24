@@ -177,8 +177,6 @@ class Session:
                 self.d2api.unload_act(p_act)
 
         self.acts = (POINTER(Act) * 5)()
-        self.read_map_data.cache.clear()
-        self.generate_level_image.cache.clear()
         self._seed = s
 
     @property

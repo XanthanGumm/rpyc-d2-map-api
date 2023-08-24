@@ -7,8 +7,6 @@ from ctypes import POINTER
 import cv2
 import numpy as np
 from PIL import Image
-from PIL import ImageFilter
-from cachetools import cached
 from cachetools.keys import hashkey
 
 from map_server.pyWrappers import Act
@@ -35,7 +33,6 @@ class Session:
         if not self.d2api.initialize():
             raise ValueError("Failed to initialize Diablo 2 Lod 13.c")
 
-    @cached(cache={}, key=lambda self, area, position: hashkey(area))
     def read_map_data(self, area, position):
         assert self._seed is not None or self._difficulty is not None
 
@@ -73,17 +70,13 @@ class Session:
             "tomb_area": area_map.tomb_area,
         }
 
-    # TODO: first fix the zigzag, add waypoints, maze and outdoor, stash, remove cache
-    @cached(
-        cache={},
-        key=lambda self, area, scale, player_position=None, verbose=False: hashkey(area),
-    )
-    def generate_level_image(self, area, scale, player_position=None, verbose=False):
+    # TODO: add waypoints, maze and outdoor, stash
+    def generate_level_image(self, area, scale, upscale, player_position=None, verbose=False):
         map_data = self.read_map_data(area, player_position)  # handle this when removing cache
         level_map = map_data["map"]
 
         level_map_invert = level_map
-        level_map_invert[level_map_invert == -1] = 0
+        level_map_invert[level_map_invert == -1] = 255
 
         level_map = np.where((level_map == -1) | (level_map % 2 != 0), 0, 255).astype(np.uint8)
 
@@ -134,17 +127,20 @@ class Session:
         level_map_iso_brga[Bmask] = [127, 127, 127, 127]
         level_map_iso_brga[Wmask] = [255, 255, 255, 0]
 
-        level_map_iso_brga = cv2.resize(
-            level_map_iso_brga,
-            (int(w * scale), int(h * scale)),
-            interpolation=cv2.INTER_LANCZOS4
-        )
+        if scale:
+            level_map_iso_brga = cv2.resize(
+                level_map_iso_brga,
+                (int(w * scale), int(h * scale)),
+                interpolation=cv2.INTER_AREA
+            )
 
-        ksize = 3 if scale == 1 else 7 if 2.4 <= scale < 3.7 else 9 if 3.7 <= scale < 4.8 else 11
-        level_map_iso_brga = cv2.GaussianBlur(level_map_iso_brga, (ksize, ksize), 0)
-        level_map_iso_brga = cv2.medianBlur(level_map_iso_brga, ksize=ksize)
+        if upscale:
+            ksize = 3 if scale == 1 else 7 if 2.4 <= scale < 3.7 else 9 if 3.7 <= scale < 4.8 else 11
+            level_map_iso_brga = cv2.GaussianBlur(level_map_iso_brga, (ksize - 2, ksize - 2), 0)
+            level_map_iso_brga = cv2.medianBlur(level_map_iso_brga, ksize=ksize)
 
         level_map_iso_brga_img = Image.fromarray(level_map_iso_brga)
+        level_map_iso_brga_img.show()
         img_byte_arr = io.BytesIO()
         level_map_iso_brga_img.save(img_byte_arr, format="PNG")
 

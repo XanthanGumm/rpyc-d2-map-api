@@ -29,8 +29,8 @@ class MapService(rpyc.Service):
         return self._session.read_map_data(area, position)
 
     @rpyc.exposed
-    def generate_map_image(self, area, scale=1.0, player_position=None, verbose=False):
-        return self._session.generate_level_image(area, scale, player_position, verbose)
+    def generate_map_image(self, area, scale=0.0, upscale=False, player_position=None, verbose=False):
+        return self._session.generate_level_image(area, scale, upscale, player_position, verbose)
 
     def on_disconnect(self, conn):
         pass

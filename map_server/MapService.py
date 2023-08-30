@@ -6,7 +6,12 @@ class MapService(rpyc.Service):
     _session = None
 
     def on_connect(self, conn):
-        self._session = Session()
+        print("Client Connected")
+        # self._session = Session()
+
+    def initialize(self, callback):
+        callback = rpyc.async_(callback)
+        self._session = Session(callback)
 
     @rpyc.exposed
     def map_seed(self):

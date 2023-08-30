@@ -17,10 +17,11 @@ from map_server.utils.data import EnumDifficulty
 
 
 class Session:
-    def __init__(self):
+    def __init__(self, callback):
         self._seed = None
         self._difficulty = None
         self.acts = (POINTER(Act) * 5)()
+        self._callback = callback
 
         root = pathlib.Path(__file__)
         while root.name != "rpyc-d2-map-api":
@@ -70,7 +71,6 @@ class Session:
             "tomb_area": area_map.tomb_area,
         }
 
-    # TODO: find world origin
     # TODO: add waypoints, maze and outdoor, stash
     def generate_level_image(self, area, scale, upscale, player_position=None, verbose=False):
         map_data = self.read_map_data(area, player_position)  # handle this when removing cache
@@ -167,7 +167,8 @@ class Session:
             # show the final image
             # level_map_iso_brga_img.show()
         print(f"Sending level: {area} image map")
-        return bytes(img_byte_arr.getbuffer())
+        self._callback(area, bytes(img_byte_arr.getbuffer()))
+        # return bytes(img_byte_arr.getbuffer())
 
     @property
     def seed(self):

@@ -1,6 +1,6 @@
 import sys
 from map_server.MapService import MapService
-from rpyc.utils.server import ThreadedServer
+from rpyc.utils.server import ThreadPoolServer
 
 
 def main():
@@ -10,7 +10,7 @@ def main():
 
     try:
         print("[!] RPC server is up.")
-        server = ThreadedServer(
+        server = ThreadPoolServer(
             MapService,
             port=18861,
             protocol_config={

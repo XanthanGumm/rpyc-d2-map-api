@@ -13,10 +13,8 @@ classifiers = [
 dependencies = [
     "cachetools",
     "rpyc",
-    "pillow==9.3",
     "pyastar2d",
     "numpy",
-    "opencv-python",
     "black"
 ]
 

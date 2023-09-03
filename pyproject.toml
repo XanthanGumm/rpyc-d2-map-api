@@ -13,6 +13,7 @@ classifiers = [
 dependencies = [
     "cachetools",
     "rpyc",
+    "pillow == 9.3",
     "imageio",
     "numpy"
 ]

@@ -5,7 +5,7 @@ if not importlib.util.find_spec("pyastar2d"):
     import pathlib
 
     root = pathlib.Path(__file__)
-    while root != "rpyc-d2-map-api":
+    while root.name != "rpyc-d2-map-api":
         root = root.parent
 
     sys.path.insert(0, os.path.join(root, "dep"))

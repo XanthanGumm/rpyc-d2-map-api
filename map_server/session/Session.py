@@ -95,6 +95,9 @@ class Session:
 
     @seed.setter
     def seed(self, s):
+        # clear the cache when a seed is set
+        self.read_map_grid.cache.clear()
+
         for p_act in self.acts:
             if p_act:
                 self.d2api.unload_act(p_act)

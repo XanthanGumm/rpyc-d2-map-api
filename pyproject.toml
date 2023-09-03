@@ -14,7 +14,12 @@ dependencies = [
     "cachetools",
     "rpyc",
     "pyastar2d",
-    "numpy",
+    "imageio",
+    "numpy"
+]
+
+[project.optional-dependencies]
+dev = [
     "black"
 ]
 

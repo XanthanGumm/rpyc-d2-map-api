@@ -29,6 +29,10 @@ class Session:
         if not os.path.isdir(settings["diablo2"]["path"]):
             raise ValueError(f"[!] Cannot find Diablo II lod 1.13c path: {settings['diablo2']['path']}")
 
+        d2lod_dlls = [d for d in pathlib.Path(settings["diablo2"]["path"]).iterdir() if d.name.endswith(".dll")]
+        if len(d2lod_dlls) != 22 or not os.path.isfile(os.path.join(settings["diablo2"]["path"], "Game.exe")):
+            raise ValueError("[!] Diablo II lod path is incorrect (or some Diablo II lod dlls are missing)")
+
         self.d2api = ApiWrapper(bytes(settings["diablo2"]["path"], "utf8"))
         if not self.d2api.initialize():
             raise ValueError("[!] Failed to initialize Diablo 2 Lod 13.c")

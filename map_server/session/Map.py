@@ -106,7 +106,7 @@ class Map:
             pass  # add the tomb area
 
         # get the level pointer
-        p_level = self._d2api.read_level(act.contents.pMisc, area)
+        p_level = self._d2api.get_level(act.contents.pMisc, area)
         assert p_level, "Returned NULL p_level from d2api.get_level"
 
         # init the level rooms

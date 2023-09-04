@@ -30,7 +30,7 @@ class MapService(rpyc.Service):
 
     @rpyc.exposed
     def get_level_map(self, area: int) -> bytes:
-        return self._session.get_level_map(area, self.map_seed)
+        return self._session.get_level_map(area)
 
     def on_disconnect(self, conn) -> None:
         pass

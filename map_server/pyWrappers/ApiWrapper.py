@@ -42,7 +42,12 @@ class ApiWrapper:
         while root.name != "rpyc-d2-map-api":
             root = root.parent
 
-        api_lib = CDLL(os.path.join(root, "dep", "MapApi.dll"))
+        dll_path = os.path.join(root, "dep", "MapApi.dll")
+
+        if not os.path.isfile(dll_path):
+            raise ValueError(f"[!] Cannot find MapApi.dll path: {dll_path}")
+
+        api_lib = CDLL(dll_path)
         self._path = c_char_p(d2lod_path)
 
         self._Initialize = api_lib["Initialize"]

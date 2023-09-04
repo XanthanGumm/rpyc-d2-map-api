@@ -8,19 +8,22 @@ def main():
     if is_64bits:
         raise Exception("rpyc-map-api can only run on 32 bit version of python")
 
+    print("[!] RPC server is up.")
+    server = ThreadedServer(
+        MapService,
+        port=18861,
+        protocol_config={
+            "allow_public_attrs": True,
+            "allow_setattr": True,
+            "allow_pickle": True,
+        },
+    )
+
     try:
-        print("[!] RPC server is up.")
-        server = ThreadedServer(
-            MapService,
-            port=18861,
-            protocol_config={
-                "allow_public_attrs": True,
-                "allow_setattr": True,
-                "allow_pickle": True,
-            },
-        )
+
         server.start()
     except Exception as e:
+        server.close()
         print(e)
         print("[!] Exiting RPC server.")
 

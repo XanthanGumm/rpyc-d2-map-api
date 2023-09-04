@@ -8,10 +8,6 @@ class MapService(rpyc.Service):
     def on_connect(self, conn) -> None:
         self._session = Session()
 
-    # def initialize(self, callback):
-    #     callback = rpyc.async_(callback)
-    #     self._session = Session(callback)
-
     @rpyc.exposed
     def map_seed(self) -> int:
         return self._session.seed
@@ -29,12 +25,12 @@ class MapService(rpyc.Service):
         self._session.difficulty = d
 
     @rpyc.exposed
-    def read_map_data(self, area: int, position: tuple[float, float]) -> dict:
-        return self._session.read_map_data(area, position)
+    def get_level_data(self, area: int, position: tuple[float, float]) -> dict:
+        return self._session.get_level_data(area, position)
 
     @rpyc.exposed
-    def read_map_grid(self, area: int) -> bytes:
-        return self._session.read_map_grid(area, self.map_seed)
+    def get_level_map(self, area: int) -> bytes:
+        return self._session.get_level_map(area, self.map_seed)
 
     def on_disconnect(self, conn) -> None:
         pass

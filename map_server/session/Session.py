@@ -15,10 +15,9 @@ from map_server.utils.data import EnumDifficulty
 
 class Session:
     def __init__(self):
-        self._seed = None
-        self._difficulty = None
-        self.acts = (POINTER(Act) * 5)()
-        # self._callback = callback
+        self._seed: int = 0
+        self._difficulty: EnumDifficulty | None = None
+        self._acts = (POINTER(Act) * 5)()
 
         root = pathlib.Path(__file__)
         while root.name != "rpyc-d2-map-api":
@@ -27,67 +26,66 @@ class Session:
         with open(os.path.join(root, "settings.toml"), "rb") as file:
             settings = tomllib.load(file)
 
+        if not os.path.isdir(settings["diablo2"]["path"]):
+            raise ValueError(f"[!] Cannot find Diablo II lod 1.13c path: {settings['diablo2']['path']}")
+
         self.d2api = ApiWrapper(bytes(settings["diablo2"]["path"], "utf8"))
         if not self.d2api.initialize():
-            raise ValueError("Failed to initialize Diablo 2 Lod 13.c")
+            raise ValueError("[!] Failed to initialize Diablo 2 Lod 13.c")
 
-    def read_map_data(self, area, position):
-        assert self._seed is not None or self._difficulty is not None
-
-        act = EnumAct.FromArea(area)
-        act_index = act.code
-
-        if not self.acts[act.value]:
-            print(
-                f"[!] Init Act: {act.value}, difficulty: {self._difficulty.value}, act_index: {act_index}, seed: {hex(self._seed)}"
-            )
-            self.acts[act.value] = self.d2api.load_act(act.value, self._seed, self._difficulty.value, act_index)
-
-        area_map = Map(self.d2api, area)
-        area_map.build_coll_map(self.acts[act.value], area)
-        area_map.generate_coll_map()
-        area_map.add_outdoor_exits(position)
-
-        exits = dict()
-        adjacent_levels = dict()
-        for k, v in area_map.adjacent_levels.items():
-            if v["exits"] is not None:
-                exits[k] = v["exits"]
-            else:
-                adjacent_levels[k] = v
-
-        return {
-            "map": np.asarray(area_map.map),
-            "area": area,
-            "size": area_map.size,
-            "origin": (area_map.originX, area_map.originY),
-            "adjacent_levels": adjacent_levels,
-            "waypoint": area_map.waypoint,
-            "exits": exits,
-            "tomb_area": area_map.tomb_area,
-        }
-
-    @cached(cache={}, key=lambda self, area, seed: hashkey(area, seed))
-    def read_map_grid(self, area, seed) -> bytes:
+    @cached(cache={}, key=lambda self, area: hashkey(area))
+    def read_level(self, area):
 
         act = EnumAct.FromArea(area)
         act_index = act.code
 
-        if not self.acts[act.value]:
-            print(
-                f"[!] Init Act: {act.value}, difficulty: {self._difficulty.value}, act_index: {act_index}, seed: {hex(self._seed)}"
-            )
-            self.acts[act.value] = self.d2api.load_act(act.value, self._seed, self._difficulty.value, act_index)
+        if not self._acts[act.value]:
+            self._acts[act.value] = self.d2api.load_act(act.value, self._seed, self._difficulty.value, act_index)
 
-        area_map = Map(self.d2api, area)
-        area_map.build_coll_map(self.acts[act.value], area)
+        level = Map(self.d2api, area)
+        level.build_coll_map(self._acts[act.value], area)
 
-        map_grid = np.asarray(area_map.map, np.int32)
+        return level
+
+    @cached(cache={}, key=lambda self, area: hashkey(area))
+    def get_level_map(self, area: int):
+        level = self.read_level(area)
+
+        map_grid = np.asarray(level.map, np.int32)
         h, w = map_grid.shape
 
-        pickled_map = pickle.dumps((map_grid.tobytes(), h, w))
+        # add exits and waypoints here
+        # exits = ...
+        # waypoint = ...
 
-        return bytes(pickled_map)
+        pickled_level = pickle.dumps((map_grid.tobytes(), h, w))
+        return bytes(pickled_level)
+
+    def get_level_data(self, area: int, position: tuple[float, float]):
+        level = self.read_level(area)
+        level.generate_coll_map()
+        level.add_outdoor_exits(position)
+
+        return {
+            # later if needed return the grid as well
+            "area": area,
+            "size": level.size,
+            "origin": (level.originX, level.originY),
+            "exits": {name: lvl for name, lvl in level.adjacent_levels.items() if lvl["exits"]},
+            "adjacent_levels": {name: lvl for name, lvl in level.adjacent_levels.items() if not lvl["exits"]},
+            "waypoint": level.waypoint,
+            "tomb_area": level.tomb_area
+        }
+
+    def clear(self):
+        self.read_level.cache.clear()
+        self.get_level_map.cache.clear()
+
+        for p_act in self._acts:
+            if p_act:
+                self.d2api.unload_act(p_act)
+
+        self._acts = (POINTER(Act) * 5)()
 
     @property
     def seed(self):
@@ -95,14 +93,7 @@ class Session:
 
     @seed.setter
     def seed(self, s):
-        # clear the cache when a seed is set
-        self.read_map_grid.cache.clear()
-
-        for p_act in self.acts:
-            if p_act:
-                self.d2api.unload_act(p_act)
-
-        self.acts = (POINTER(Act) * 5)()
+        self.clear()
         self._seed = s
 
     @property

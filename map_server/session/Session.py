@@ -76,7 +76,7 @@ class Session:
             "size": level.size,
             "origin": (level.originX, level.originY),
             "exits": {name: lvl['exits'] for name, lvl in level.adjacent_levels.items() if lvl["exits"]},
-            "adjacent_levels": {name: lvl for name, lvl in level.adjacent_levels.items() if not lvl["exits"]},
+            "adjacent_levels": {name: lvl for name, lvl in level.adjacent_levels.items() if lvl["outdoor"]},
             "waypoint": level.waypoint,
             "tomb_area": level.tomb_area
         }

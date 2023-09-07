@@ -43,7 +43,7 @@ class Map:
                 near_level_height = cur.contents.pLevel.contents.dwSizeX * 5
                 near_level_width = cur.contents.pLevel.contents.dwSizeY * 5
                 level_no = cur.contents.pLevel.contents.dwLevelNo
-                self.adjacent_levels[EnumArea(level_no).name] = {
+                self.adjacent_levels[level_no] = {
                     "origin": (near_originX, near_originY),
                     "size": (near_level_width, near_level_height),
                     "exits": None,
@@ -98,7 +98,7 @@ class Map:
             if p_room_tile.contents.nNum[0] == p_preset.contents.dwTxtFileNo:
                 level_no = p_room_tile.contents.pRoom2.contents.pLevel.contents.dwLevelNo
 
-                self.adjacent_levels[EnumArea(level_no).name]["exits"] = pos_x, pos_y
+                self.adjacent_levels[level_no]["exits"] = pos_x, pos_y
             p_room_tile = p_room_tile.contents.pNext
 
     def build_coll_map(self, act: POINTER(Act), area):
@@ -245,14 +245,14 @@ class Map:
                 if pyastar2d.astar_path(weights, src, dst) is None:
                     continue
 
-                for name, info in self.adjacent_levels.items():
+                for level, info in self.adjacent_levels.items():
                     x, y = connector["adjacent"]
                     w, h = info["size"][1], info["size"][0]
                     if (
                         info["origin"][0] <= x <= info["origin"][0] + w
                         and info["origin"][1] <= y <= info["origin"][1] + h
                     ):
-                        self.adjacent_levels[name]["outdoor"].append(connector["edge"])
+                        self.adjacent_levels[level]["outdoor"].append(connector["edge"])
 
                 # break only if a path has been found
                 break

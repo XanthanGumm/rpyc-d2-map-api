@@ -49,9 +49,9 @@ class Area(Enum):
     LostCity = 44
     ValleyOfSnakes = 45
     CanyonOfTheMagi = 46
-    SewersLevel1 = 47
-    SewersLevel2 = 48
-    SewersLevel3 = 49
+    SewersLevel1Act2 = 47
+    SewersLevel2Act2 = 48
+    SewersLevel3Act2 = 49
     HaremLevel1 = 50
     HaremLevel2 = 51
     PalaceCellarLevel1 = 52
@@ -94,8 +94,8 @@ class Area(Enum):
     FlayerDungeonLevel2 = 89
     SwampyPitLevel3 = 90
     FlayerDungeonLevel3 = 91
-    Sewers2Level1 = 92
-    Sewers2Level2 = 93
+    SewersLevel1Act3 = 92
+    SewersLevel2Act3 = 93
     RuinedTemple = 94
     DisusedFane = 95
     ForgottenReliquary = 96

@@ -78,6 +78,7 @@ class Session:
             "exits": {name: lvl['exits'] for name, lvl in level.adjacent_levels.items() if lvl["exits"]},
             "adjacent_levels": {name: lvl for name, lvl in level.adjacent_levels.items() if not lvl["exits"]},
             "waypoint": level.waypoint,
+            "npcs": level.super_uniques,
             "tomb_area": level.tomb_area
         }
 

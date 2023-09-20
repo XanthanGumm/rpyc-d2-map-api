@@ -20,7 +20,7 @@ class Map:
         self.size = None
         self.map = None
         self.adjacent_levels = dict()
-        self.npcs = dict()
+        self.super_uniques = dict()
         self.objects = dict()
 
         self._rle_map = dict()
@@ -74,12 +74,10 @@ class Map:
             preset_type = EnumPresetType(p_preset.contents.dwType)
             pos_x = p_room2.contents.dwPosX * 5 + p_preset.contents.dwPosX
             pos_y = p_room2.contents.dwPosY * 5 + p_preset.contents.dwPosY
-            # if preset_type == PresetType.npc:
-            #     npc = Npc(p_preset.contents.dwTxtFileNo)
-            #     if self.npcs.get(npc.name):
-            #         self.npcs[npc.name].append((pos_x, pos_y))
-            #     else:
-            #         self.npcs[npc.name] = [(pos_x, pos_y)]
+            if preset_type == EnumPresetType.npc:
+                if p_preset.contents.dwTxtFileNo == 250:
+                    self.super_uniques[250] = {"name": "Summoner", "pos": (pos_x, pos_y)}
+
             if preset_type == EnumPresetType.object:
                 if p_preset.contents.dwTxtFileNo < 580:
                     object_txt = self._d2api.get_object_txt(p_preset.contents.dwTxtFileNo)
